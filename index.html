@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova AI Assistant</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;background:#050b18;color:#eaf7ff;
+  font-family:Arial,sans-serif;display:flex;justify-content:center;
+}
+.app{width:100%;max-width:480px;padding:22px 16px}
+h1{text-align:center;color:#36d8ff;letter-spacing:3px}
+.sub{text-align:center;color:#91abc9}
+.avatar{
+  width:140px;height:140px;margin:28px auto;
+  border:2px solid #23cfff;border-radius:50%;
+  display:grid;place-items:center;
+  box-shadow:0 0 28px #087cae,inset 0 0 24px #087cae;
+  font-size:65px;background:radial-gradient(#123d66,#06101f);
+}
+.status{text-align:center;color:#49e7ff;margin-bottom:22px}
+.chat{
+  height:270px;overflow-y:auto;border:1px solid #174768;
+  border-radius:14px;padding:12px;background:#081322;
+}
+.msg{padding:10px 12px;margin:9px 0;border-radius:12px;
+  line-height:1.5;overflow-wrap:anywhere}
+.nova{background:#102e49}
+.user{background:#123d36;text-align:right}
+.controls{display:flex;gap:8px;margin-top:12px}
+input{
+  flex:1;min-width:0;background:#0b192b;color:white;
+  border:1px solid #286083;border-radius:10px;padding:12px;
+}
+button{
+  border:0;border-radius:10px;padding:12px;
+  background:#087da8;color:white;font-weight:bold;
+}
+#voice{width:100%;margin-top:10px;background:#075d83}
+.note{font-size:12px;color:#91abc9;text-align:center;margin-top:15px}
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>N O V A</h1>
+  <p class="sub">YOUR PERSONAL AI ASSISTANT</p>
+  <div class="avatar">✦</div>
+  <div class="status" id="status">● NOVA ONLINE</div>
+  <div class="chat" id="chat" aria-live="polite">
+    <div class="msg nova">नमस्ते! मैं Nova हूँ। बताओ, मैं तुम्हारी क्या मदद करूँ?</div>
+  </div>
+  <div class="controls">
+    <input id="message" placeholder="यहाँ हिंदी में लिखो..." />
+    <button id="send">Send</button>
+  </div>
+  <button id="voice">🎙️ हिंदी में बोलें</button>
+  <p class="note">Nova Prototype 1.0 · इंटरनेट और माइक्रोफोन की अनुमति आवश्यक हो सकती है।</p>
+</main>
+<script>
+const chat=document.getElementById('chat');
+const input=document.getElementById('message');
+const statusText=document.getElementById('status');
+
+function addMessage(text,who){
+  const el=document.createElement('div');
+  el.className='msg '+who;
+  el.textContent=text;
+  chat.appendChild(el);
+  chat.scrollTop=chat.scrollHeight;
+}
+function speak(text){
+  if(!('speechSynthesis' in window))return;
+  speechSynthesis.cancel();
+  const utterance=new SpeechSynthesisUtterance(text);
+  utterance.lang='hi-IN';
+  speechSynthesis.speak(utterance);
+}
+function reply(text){
+  const q=text.toLowerCase();
+  let answer;
+  if(q.includes('नमस्ते')||q.includes('हेलो')||q.includes('hello'))
+    answer='नमस्ते! मैं Nova हूँ। आज मैं तुम्हारी कैसे मदद करूँ?';
+  else if(q.includes('नाम'))
+    answer='मेरा नाम Nova है। मैं तुम्हारा डिजिटल असिस्टेंट हूँ।';
+  else if(q.includes('समय'))
+    answer='तुम्हारे डिवाइस का समय है: '+new Date().toLocaleTimeString('hi-IN');
+  else if(q.includes('तुम कौन')||q.includes('तुम कौन हो'))
+    answer='मैं Nova का शुरुआती प्रोटोटाइप हूँ। असली AI कनेक्शन अभी जोड़ना बाकी है।';
+  else
+    answer='तुमने कहा: "'+text+'". अभी मेरी AI सेवा कनेक्ट नहीं है। अगले चरण में हम AI जोड़ेंगे।';
+  addMessage(answer,'nova');
+  speak(answer);
+}
+function send(){
+  const text=input.value.trim();
+  if(!text)return;
+  addMessage(text,'user');
+  input.value='';
+  reply(text);
+}
+document.getElementById('send').addEventListener('click',send);
+input.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+document.getElementById('voice').addEventListener('click',()=>{
+  if(!SpeechRecognition){
+    statusText.textContent='इस ब्राउज़र में वॉइस इनपुट उपलब्ध नहीं है';
+    return;
+  }
+  const recognition=new SpeechRecognition();
+  recognition.lang='hi-IN';
+  recognition.onstart=()=>statusText.textContent='● सुन रहा हूँ...';
+  recognition.onresult=e=>{
+    input.value=e.results[0][0].transcript;
+    send();
+  };
+  recognition.onerror=()=>statusText.textContent='● दोबारा कोशिश करो';
+  recognition.onend=()=>statusText.textContent='● NOVA ONLINE';
+  recognition.start();
+});
+</script>
+</body>
+  </html>
+  
